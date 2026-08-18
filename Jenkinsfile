@@ -15,14 +15,20 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 sh '''
-                    # Create and activate virtual environment
+                    # 1. Check if Python3 exists. If not, install it.
+                    if ! command -v python3 > /dev/null 2>&1; then
+                        echo "Python3 is missing from this Jenkins node. Installing it now..."
+                        apt-get update && apt-get install -y python3 python3-venv python3-pip
+                    fi
+
+                    # 2. Create and activate virtual environment
                     python3 -m venv venv
                     . venv/bin/activate
                     
-                    # Install Python dependencies
+                    # 3. Install Python dependencies
                     pip install pytest pytest-playwright allure-pytest requests playwright-stealth
                     
-                    # Install Playwright browsers and required Linux OS dependencies
+                    # 4. Install Playwright browsers and required Linux OS dependencies
                     playwright install chromium
                     playwright install-deps chromium
                 '''
