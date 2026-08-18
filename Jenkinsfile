@@ -48,10 +48,11 @@ pipeline {
             // 1. Generate Allure Report
             allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             
-            // 2. Archive Playwright Traces (for manual debugging)
+            // 2. Archive Playwright Traces AND Videos
             archiveArtifacts artifacts: 'test-results/**/trace.zip', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'jenkins_reports/videos/**/*.webm', allowEmptyArchive: true
             
-            // 3. Clean up the workspace to prevent VPS disk bloat
+            // 3. Clean up the workspace
             cleanWs()
         }
     }
