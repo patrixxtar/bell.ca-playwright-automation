@@ -1,11 +1,5 @@
 pipeline {
-    // 1. CHANGE THIS AGENT BLOCK
-    agent {
-        docker {
-            image 'mcr.microsoft.com/playwright/python:v1.42.0-jammy'
-            // This runs the pipeline inside a container that already has Python 3 and Playwright installed
-        }
-    }
+    agent any
 
     environment {
         PYTHONUNBUFFERED = '1'
@@ -21,15 +15,30 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 sh '''
-                    # Create and activate virtual environment
-                    python3 -m venv venv
+                    # 1. Find Python or install it if missing
+                    if command -v python3 &>/dev/null; then
+                        PYTHON_CMD="python3"
+                    elif command -v python &>/dev/null; then
+                        PYTHON_CMD="python"
+                    else
+                        echo "Python not found. Attempting to install..."
+                        # Try installing (works if Jenkins has apt-get access)
+                        apt-get update && apt-get install -y python3 python3-venv python3-pip || sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip
+                        PYTHON_CMD="python3"
+                    fi
+
+                    echo "Using Python command: $PYTHON_CMD"
+
+                    # 2. Create and activate virtual environment
+                    $PYTHON_CMD -m venv venv
                     . venv/bin/activate
                     
-                    # Install Python dependencies
+                    # 3. Install Python dependencies
                     pip install pytest pytest-playwright allure-pytest requests playwright-stealth
                     
-                    # You don't need install-deps here anymore because the Docker image already has them!
+                    # 4. Install Playwright browsers and required Linux OS dependencies
                     playwright install chromium
+                    playwright install-deps chromium
                 '''
             }
         }
@@ -48,9 +57,14 @@ pipeline {
 
     post {
         always {
+            // Generate Allure Report
             allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
+            
+            // Archive Playwright Traces AND Videos
             archiveArtifacts artifacts: 'test-results/**/trace.zip', allowEmptyArchive: true
             archiveArtifacts artifacts: 'jenkins_reports/videos/**/*.webm', allowEmptyArchive: true
+            
+            // Clean up the workspace
             cleanWs()
         }
     }
