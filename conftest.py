@@ -36,8 +36,12 @@ def browser_context_args(browser_context_args, pytestconfig):
 @pytest.fixture(autouse=True)
 def popup_monitor(page):
     """Applies stealth and monitors for popups."""
-    # Apply stealth to the page before doing anything else
-    stealth(page)
+    
+    # Call the function INSIDE the module for v2.0.3 compatibility
+    if hasattr(stealth, 'stealth_sync'):
+        stealth.stealth_sync(page)
+    else:
+        print(f"Warning: Could not find stealth_sync. Module contents: {dir(stealth)}")
     
     page.add_locator_handler(
         page.locator("#close-lightbox"),
