@@ -47,11 +47,10 @@ pipeline {
         always {
             allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             
-            // Updated to grab both traces and videos from the test-results folder
+            // Updated to pull traces and videos directly from the test-results folder
             archiveArtifacts artifacts: 'test-results/**/trace.zip', allowEmptyArchive: true
             archiveArtifacts artifacts: 'test-results/**/*.webm', allowEmptyArchive: true
             
             cleanWs()
         }
     }
-}

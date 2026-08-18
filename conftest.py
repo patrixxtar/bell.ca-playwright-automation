@@ -8,17 +8,15 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args, pytestconfig):
-    """Dynamically sets Viewports, User-Agents, and FFMPEG Video Recording"""
-    # Updated to fetch the new argument name
     device_key = pytestconfig.getoption("--target-device")
     
-    # Find profile in your config (search mobile, tablet, desktop)
-    profile = DEVICE_PROFILES.get("desktop") # Default fallback
+    profile = DEVICE_PROFILES.get("desktop") 
     for category in DEVICE_PROFILES.values():
         if device_key in category:
             profile = category[device_key]
             break
 
+    # Removed the manual record_video_dir lines so pytest-playwright can handle it safely
     args = {
         **browser_context_args,
         "viewport": {"width": profile["display_size"][0], "height": profile["display_size"][1]}
