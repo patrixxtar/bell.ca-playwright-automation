@@ -20,7 +20,7 @@ pipeline {
                     . venv/bin/activate
                     
                     # Install Python dependencies
-                    pip install pytest pytest-playwright allure-pytest requests
+                    pip install pytest pytest-playwright allure-pytest requests playwright-stealth
                     
                     # Install Playwright browsers and required Linux OS dependencies
                     playwright install chromium

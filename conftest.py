@@ -1,4 +1,5 @@
 import pytest
+from playwright_stealth import stealth_sync
 from configs.bell_config import DEVICE_PROFILES
 
 def pytest_addoption(parser):
@@ -34,7 +35,10 @@ def browser_context_args(browser_context_args, pytestconfig):
 
 @pytest.fixture(autouse=True)
 def popup_monitor(page):
-    """Replaces your Threading PopupHandler. Playwright monitors this in the background natively."""
+    """Applies stealth and monitors for popups."""
+    # Apply stealth to the page before doing anything else
+    stealth_sync(page)
+    
     page.add_locator_handler(
         page.locator("#close-lightbox"),
         lambda: page.locator("#close-lightbox").click()
@@ -44,3 +48,15 @@ def popup_monitor(page):
         lambda: page.locator("#onetrust-accept-btn-handler").click()
     )
     yield
+
+@pytest.fixture(scope="session")
+def browser_type_launch_args(browser_type_launch_args):
+    """Passes arguments to Chromium to hide the automation flag."""
+    return {
+        **browser_type_launch_args,
+        "args": [
+            "--disable-blink-features=AutomationControlled",
+            "--disable-infobars",
+            "--no-sandbox",
+        ]
+    }
