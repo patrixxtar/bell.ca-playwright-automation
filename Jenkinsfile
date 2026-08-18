@@ -36,7 +36,7 @@ pipeline {
                     sh '''
                         . venv/bin/activate
                         # Run the tests and generate Allure results
-                        pytest tests/ --device=desktop --tracing=retain-on-failure --screenshot=only-on-failure --alluredir=allure-results
+                        pytest tests/ --target-device=desktop --tracing=retain-on-failure --screenshot=only-on-failure --alluredir=allure-results
                     '''
                 }
             }

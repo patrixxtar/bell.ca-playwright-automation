@@ -2,12 +2,14 @@ import pytest
 from configs.bell_config import DEVICE_PROFILES
 
 def pytest_addoption(parser):
-    parser.addoption("--device", action="store", default="desktop", help="desktop, iphone_15_pro_max, etc.")
+    # Changed from --device to --target-device to avoid conflicts with pytest-playwright
+    parser.addoption("--target-device", action="store", default="desktop", help="desktop, iphone_15_pro_max, etc.")
 
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args, pytestconfig):
     """Dynamically sets Viewports, User-Agents, and FFMPEG Video Recording"""
-    device_key = pytestconfig.getoption("device")
+    # Updated to fetch the new argument name
+    device_key = pytestconfig.getoption("--target-device")
     
     # Find profile in your config (search mobile, tablet, desktop)
     profile = DEVICE_PROFILES.get("desktop") # Default fallback
