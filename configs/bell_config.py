@@ -1,4 +1,4 @@
-from selenium.webdriver.common.by import By
+#bell_config
 
 CONFIG = {
     "target_url": "https://www.bell.ca/",
