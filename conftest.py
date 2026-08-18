@@ -21,9 +21,7 @@ def browser_context_args(browser_context_args, pytestconfig):
 
     args = {
         **browser_context_args,
-        "viewport": {"width": profile["display_size"][0], "height": profile["display_size"][1]},
-        "record_video_dir": "jenkins_reports/videos/", # Native FFMPEG replacement!
-        "record_video_size": {"width": 1280, "height": 720}
+        "viewport": {"width": profile["display_size"][0], "height": profile["display_size"][1]}
     }
     
     if profile.get("mobile_emulation"):
@@ -37,11 +35,11 @@ def browser_context_args(browser_context_args, pytestconfig):
 def popup_monitor(page):
     """Applies stealth and monitors for popups."""
     
-    # Call the function INSIDE the module for v2.0.3 compatibility
-    if hasattr(stealth, 'stealth_sync'):
-        stealth.stealth_sync(page)
+    # Correct implementation for playwright-stealth v2.0.3
+    if hasattr(stealth, 'sync_api'):
+        stealth.sync_api.stealth_sync(page)
     else:
-        print(f"Warning: Could not find stealth_sync. Module contents: {dir(stealth)}")
+        print("Stealth sync_api not found!")
     
     page.add_locator_handler(
         page.locator("#close-lightbox"),
