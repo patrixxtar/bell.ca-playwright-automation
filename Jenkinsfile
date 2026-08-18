@@ -1,12 +1,5 @@
 pipeline {
-    // Spin up the official Playwright container to run our tests
-    agent {
-        docker {
-            image 'mcr.microsoft.com/playwright/python:v1.42.0-jammy'
-            // Run as root to prevent Jenkins workspace permission errors
-            args '-u root:root' 
-        }
-    }
+    agent any
 
     environment {
         PYTHONUNBUFFERED = '1'
@@ -22,19 +15,27 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 sh '''
-                    # Because we are using the Playwright Docker image, 
-                    # Python 3 and all browsers are ALREADY installed!
-                    # We only need to install our specific framework dependencies.
-                    pip install -r requirements.txt
+                    # Create and activate virtual environment
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    
+                    # Install Python dependencies
+                    pip install pytest pytest-playwright allure-pytest requests
+                    
+                    # Install Playwright browsers and required Linux OS dependencies
+                    playwright install chromium
+                    playwright install-deps chromium
                 '''
             }
         }
 
         stage('Execute Playwright Tests') {
             steps {
+                // catchError ensures the pipeline moves to the 'post' stage even if tests fail
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
-                        # Run the tests directly (no venv needed in this isolated container)
+                        . venv/bin/activate
+                        # Run the tests and generate Allure results
                         pytest tests/ --device=desktop --tracing=retain-on-failure --screenshot=only-on-failure --alluredir=allure-results
                     '''
                 }
@@ -44,14 +45,17 @@ pipeline {
 
     post {
         always {
-            // Generate Allure Report
-            allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
-            
-            // Archive FFMPEG Videos and Playwright Traces
-            archiveArtifacts artifacts: 'jenkins_reports/videos/*.webm, test-results/**/trace.zip', allowEmptyArchive: true
-            
-            // Cleanup workspace
-            cleanWs()
+            // Safely execute post-actions only if a workspace exists
+            node {
+                // 1. Generate Allure Report
+                allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
+                
+                // 2. Archive Playwright Traces (for manual debugging)
+                archiveArtifacts artifacts: 'test-results/**/trace.zip', allowEmptyArchive: true
+                
+                // 3. Clean up the workspace to prevent VPS disk bloat
+                cleanWs()
+            }
         }
     }
 }
