@@ -1,8 +1,14 @@
 pipeline {
-    agent any // Or specify a docker agent if your VPS uses Docker
+    // Spin up the official Playwright container to run our tests
+    agent {
+        docker {
+            image 'mcr.microsoft.com/playwright/python:v1.42.0-jammy'
+            // Run as root to prevent Jenkins workspace permission errors
+            args '-u root:root' 
+        }
+    }
 
     environment {
-        // Ensure Python outputs directly to Jenkins console
         PYTHONUNBUFFERED = '1'
     }
 
@@ -16,31 +22,20 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 sh '''
-                    # Create a virtual environment so we don't break VPS system packages
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    
-                    # Install Python dependencies
+                    # Because we are using the Playwright Docker image, 
+                    # Python 3 and all browsers are ALREADY installed!
+                    # We only need to install our specific framework dependencies.
                     pip install -r requirements.txt
-                    
-                    # Install Playwright browsers and OS dependencies (Linux)
-                    playwright install chromium
-                    playwright install-deps chromium
                 '''
             }
         }
 
         stage('Execute Playwright Tests') {
             steps {
-                // catchError ensures the pipeline continues to the reporting stage even if a test fails
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
-                        . venv/bin/activate
-                        # Run Desktop Tests
+                        # Run the tests directly (no venv needed in this isolated container)
                         pytest tests/ --device=desktop --tracing=retain-on-failure --screenshot=only-on-failure --alluredir=allure-results
-                        
-                        # Run Mobile Tests (Optional, uncomment if needed)
-                        # pytest tests/ --device=iphone_15_pro_max --alluredir=allure-results
                     '''
                 }
             }
@@ -49,13 +44,13 @@ pipeline {
 
     post {
         always {
-            // 1. Generate Allure Report
+            // Generate Allure Report
             allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             
-            // 2. Archive FFMPEG Videos and Playwright Traces
-            archiveArtifacts artifacts: 'jenkins_reports/videos/*.mp4, test-results/**/trace.zip', allowEmptyArchive: true
+            // Archive FFMPEG Videos and Playwright Traces
+            archiveArtifacts artifacts: 'jenkins_reports/videos/*.webm, test-results/**/trace.zip', allowEmptyArchive: true
             
-            // 3. Cleanup workspace to save VPS disk space
+            // Cleanup workspace
             cleanWs()
         }
     }
