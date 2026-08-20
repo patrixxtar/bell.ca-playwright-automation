@@ -1,5 +1,5 @@
 import pytest
-from playwright_stealth.stealth import stealth_sync
+from playwright_stealth import Stealth
 from configs.bell_config import DEVICE_PROFILES
 
 def pytest_addoption(parser):
@@ -31,7 +31,7 @@ def browser_context_args(browser_context_args, pytestconfig):
 @pytest.fixture(autouse=True)
 def popup_monitor(page):
     """Applies stealth and sets up handlers for dynamic popups/overlays."""
-    stealth_sync(page)
+    Stealth().apply_stealth_sync(page)
     
     page.add_locator_handler(
         page.locator("#close-lightbox"),
