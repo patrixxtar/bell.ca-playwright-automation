@@ -49,7 +49,7 @@ class LandingNavigationFramework:
     def navigate_byod(self):
         mobility_locator = self.page.locator(self.utils.parse_loc(self.s["nav"]["mobility_btn"])).first
         mobility_locator.wait_for(state="visible", timeout=20000)
-        self.utils.stable_click(mobility_locator)
+        self.utils.stable_click(self.s["nav"]["mobility_btn"])
         self.utils.stable_click(self.s["nav"]["plans_link"])
 
     @allure.step("Bell BYOD SB Flow")
