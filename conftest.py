@@ -1,5 +1,5 @@
 import pytest
-from playwright_stealth import stealth_sync
+from playwright_stealth.stealth import stealth_sync
 from configs.bell_config import DEVICE_PROFILES
 
 def pytest_addoption(parser):
