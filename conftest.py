@@ -1,9 +1,9 @@
 import pytest
-from playwright_stealth import stealth
+from playwright_stealth import stealth_sync
 from configs.bell_config import DEVICE_PROFILES
 
 def pytest_addoption(parser):
-    # Changed from --device to --target-device to avoid conflicts with pytest-playwright
+    # Custom option to avoid conflicts with pytest-playwright's built-in --device
     parser.addoption("--target-device", action="store", default="desktop", help="desktop, iphone_15_pro_max, etc.")
 
 @pytest.fixture(scope="session")
@@ -16,7 +16,6 @@ def browser_context_args(browser_context_args, pytestconfig):
             profile = category[device_key]
             break
 
-    # Removed the manual record_video_dir lines so pytest-playwright can handle it safely
     args = {
         **browser_context_args,
         "viewport": {"width": profile["display_size"][0], "height": profile["display_size"][1]}
@@ -31,21 +30,16 @@ def browser_context_args(browser_context_args, pytestconfig):
 
 @pytest.fixture(autouse=True)
 def popup_monitor(page):
-    """Applies stealth and monitors for popups."""
-    
-    # Correct implementation for playwright-stealth v2.0.3
-    if hasattr(stealth, 'sync_api'):
-        stealth.sync_api.stealth_sync(page)
-    else:
-        print("Stealth sync_api not found!")
+    """Applies stealth and sets up handlers for dynamic popups/overlays."""
+    stealth_sync(page)
     
     page.add_locator_handler(
         page.locator("#close-lightbox"),
-        lambda: page.locator("#close-lightbox").click()
+        lambda overlay: overlay.click()
     )
     page.add_locator_handler(
         page.locator("#onetrust-accept-btn-handler"),
-        lambda: page.locator("#onetrust-accept-btn-handler").click()
+        lambda overlay: overlay.click()
     )
     yield
 
