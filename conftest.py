@@ -18,7 +18,11 @@ def browser_context_args(browser_context_args, pytestconfig):
 
     args = {
         **browser_context_args,
-        "viewport": {"width": profile["display_size"][0], "height": profile["display_size"][1]}
+        "viewport": {"width": profile["display_size"][0], "height": profile["display_size"][1]},
+        # ADD THESE HEADERS TO LOOK LIKE A REAL DESKTOP/MOBILE BROWSER
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+        "locale": "en-CA",
+        "timezone_id": "America/Toronto",
     }
     
     if profile.get("mobile_emulation"):
