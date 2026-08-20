@@ -47,7 +47,9 @@ class LandingNavigationFramework:
 
     @allure.step("Navigate to BYOD")
     def navigate_byod(self):
-        self.utils.stable_click(self.s["nav"]["mobility_btn"])
+        mobility_locator = self.page.locator(self.utils.parse_loc(self.s["nav"]["mobility_btn"])).first
+        mobility_locator.wait_for(state="visible", timeout=20000)
+        self.utils.stable_click(mobility_locator)
         self.utils.stable_click(self.s["nav"]["plans_link"])
 
     @allure.step("Bell BYOD SB Flow")
@@ -117,15 +119,33 @@ class LandingNavigationFramework:
             self.utils.stable_click(self.s["byod"]["psim_add_to_cart"])
         else:
             self.page.locator(self.utils.parse_loc(self.s["byod"]["imei_input"])).fill(self.config["esim_imei"])
+
+            loader = self.page.locator(self.utils.parse_loc(self.s["byod"]["esim_loader"]))
+            try:
+                if loader.is_visible(timeout=2000):
+                    loader.wait_for(state="detached", timeout=15000)
+            except Exception:
+                pass
+
             # Wait for success icon context validation
-            expect(self.page.locator(self.utils.parse_loc(self.s["byod"]["success_icon"]))).to_be_visible()
+            expect(self.page.locator(self.utils.parse_loc(self.s["byod"]["success_icon"]))).to_be_visible(timeout=10000)
             self.utils.stable_click(self.s["byod"]["add_to_cart"])
 
     def _bell_enter_cart(self):
         self.utils.wait_for_ready()
         self.utils.stable_click(self.s["cart"]["continue_btn"])
+
+        checkout_button = self.page.locator(self.utils.parse_loc(self.s["cart"]["checkout_btn"]))
+        checkout_button.wait_for(state="visible", timeout=15000)
+        self.utils.stable_click(checkout_button)
+        
         # Validate cart
-        expect(self.page.locator(self.utils.parse_loc(self.s["cart"]["cart_confirmation"]))).to_be_visible()
+        cart_conf_selector = (
+            self.utils.parse_ln(self.s["cart"]["cart_confirmation"]) 
+            if hasattr(self.utils, 'parse_ln') 
+            else self.utils.parse_loc(self.s["cart"]["cart_confirmation"])
+        )
+        expect(self.page.locator(cart_conf_selector).first).to_be_visible(timeout=10000)
 
     def enter_checkout(self):
         self.utils.stable_click(self.s["cart"]["checkout_btn"])

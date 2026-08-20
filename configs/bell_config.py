@@ -2,7 +2,7 @@
 
 CONFIG = {
     "target_url": "https://www.bell.ca/",
-    "username": "baddaline1",
+    "username": "aaline1",
     "password": "Azul1234$",
     "device_name": "S26 Ultra",
     "plan_name": "Ultra",
@@ -104,6 +104,7 @@ SELECTORS = {
         "ios_tab": "#iOS",
         "close_imei_modal": "#closeIMEIModalButton",
         "success_icon": ".icon-checkmark",
+        "esim_loader": "#imei-validation-loader",
         "add_to_cart": "#addToCartCTA",
         "psim_add_to_cart": "#next-step-button-3",
         "psim_option": "xpath=//label[@for='multiSimCard']",
@@ -117,7 +118,7 @@ SELECTORS = {
         "continue_btn": "xpath=//button[contains(text(), 'Continue to cart')]",
         "offer_modal_title": "#modal-addition-offers-title",
         "offer_modal_close": "#eligible_offers_lightbox",
-        "cart_confirmation": "xpath=//*[contains(text(), 'Order summary') or contains(text(), 'Cart')]",
+        "cart_confirmation": "h1:has-text('Order summary'), h2:has-text('Order summary'), h1:has-text('Cart')",
         "footer": "xpath=//nav[@aria-label='Privacy, security and legal'] | //nav[contains(@class, 'legal-links')]",
         "checkout_btn": "#next-step-button-undefined",
     },
